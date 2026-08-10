@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
 import Ionicons from "react-native-vector-icons/Ionicons"
-
-
+import { useEffect } from 'react';
+import axios from 'axios';
+import { useState } from 'react';
 const tabname = [
   { label: 'Home', icon: 'home-outline', screen: 'Home' },
   { label: 'Rent', icon: 'cash-outline', screen: 'search' },
@@ -14,14 +15,55 @@ const tabname = [
 
 
 const HomeScreen = () => {
-
-
   const navigation = useNavigation()
+
+  const [HotSelling, setHotSelling] = useState([])
+  const [Newly, setNewly] = useState([])
+  const [Highdemand, setHighdemand] = useState([])
+  const [Recommended, setRecommended] = useState([])
+
+ const formatPrice = (amount) => {
+    if (!amount) return "0";
+
+    if (amount >= 10000000) {
+      return (amount / 10000000).toFixed(2) + " Cr";
+    } else if (amount >= 100000) {
+      return (amount / 100000).toFixed(2) + " Lakh";
+    } else if (amount >= 1000) {
+      return (amount / 1000).toFixed(2) + " K";
+    }
+    return amount;
+  };
+// get data on home page 
+useEffect(()=>{
+  gethomeData()
+},[])
+
+const gethomeData= async()=>{
+  try{
+   
+    const res=await axios.get("https://api.squarebigha.com/api/get-home-property-list/buy")
+    if(res.data.success==true){
+       setHotSelling(res.data.data.hot_selling.data)
+        setNewly(res.data.data.newly_launched.data)
+        setHighdemand(res.data.data.high_demand.data)
+        setRecommended(res.data.data.recommended.data)
+      console.log("Home data fetched successfully");
+    }
+    console.log("Home data:", res.data);
+  }
+  catch(error){
+    console.error("Error fetching home data:", error);
+  }
+}
+
 
   const handleTabPress = (item) => {
     // Navigate based on tab label, or use another identifier
     navigation.navigate(item.screen);
   };
+
+  console.log("HotSelling:", HotSelling);
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -67,18 +109,13 @@ const HomeScreen = () => {
           {/* Popular Localities */}
           <Text style={styles.sectionTitle}>Hot Selling Real Estate Projects in India</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[
-              { name: "Sector 73", rating: "4.5", price: "₹3.7K/sq.ft.", properties: "800+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" }
-            ].map((item, index) => (
+            {HotSelling.map((item, index) => (
               <View key={index} style={styles.card}>
-                <Image source={{ uri: item.img }} style={styles.cardImg} />
-                <Text style={styles.cardTitle}>{item.name}</Text>
-                <Text style={styles.cardSub}>{item.rating} ⭐ | {item.price}</Text>
-                <Text style={styles.cardSub}>{item.properties} properties</Text>
+                {/* {`https://api.squarebigha.com/${item?.primary_media?.file_url}`} */}
+                <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImg} />
+                <Text style={styles.cardTitle}>{item.apartment_society},{item.locality},{item.property_city}</Text>
+                <Text style={styles.cardSub}>{item.rating} ⭐ | ₹{formatPrice(Number(item.price) * Number(item.area))}</Text>
+                <Text style={styles.cardSub} numberOfLines={2} ellipsizeMode="tail">{item.description} </Text>
                 <Text style={styles.cardLink}>Know more →</Text>
               </View>
             ))}
@@ -113,19 +150,13 @@ const HomeScreen = () => {
           {/* Popular Localities */}
           <Text style={styles.sectionTitle}>High-demand projects to invest now</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[
-              { name: "Sector 73", rating: "4.5", price: "₹3.7K/sq.ft.", properties: "800+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" }
-            ].map((item, index) => (
+            {Highdemand.map((item, index) => (
               <View key={index} style={styles.cardh}>
-                <Image source={{ uri: item.img }} style={styles.cardImgh} />
+                <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImgh} />
                 <View style={styles.textsec}>
-                  <Text style={styles.cardTitleh}>{item.name}</Text>
-                  <Text style={styles.cardSubh}>{item.rating} ⭐ | {item.price}</Text>
-                  <Text style={styles.cardSubh}>{item.properties} properties</Text>
+                  <Text style={styles.cardTitleh}>{item.apartment_society},{item.locality},{item.property_city}</Text>
+                  <Text style={styles.cardSubh}>{item.rating} ⭐ | ₹{Number(item.price) * Number(item.area)}</Text>
+                  <Text style={styles.cardSubh} numberOfLines={2} ellipsizeMode="tail">{item.description}</Text>
                   <Text style={styles.cardLinkh}>Know more →</Text>
                 </View>
               </View>
@@ -311,7 +342,7 @@ const styles = StyleSheet.create({
   },
   cardImg: { width: "100%", height: 100, borderRadius: 8 },
   cardImgR: { width: 100, height: 100, borderRadius: 8 },
-  cardTitle: { fontSize: 14, fontWeight: "bold", marginTop: 8 },
+  cardTitle: { fontSize: 14,  marginTop: 8 },
   cardSub: { fontSize: 12, color: "gray" },
   cardLink: { fontSize: 12, color: "#955c06ff", marginTop: 4 },
 
