@@ -68,8 +68,7 @@ const FilterScreen = ({ item }) => {
 
     const [selectedTab, setSelectedTab] = useState('All');
     const cardClick = (selectedItem) => {
-        console.log("hjfhdfhhdcs")
-        navigation.navigate("detail", { userdata: selectedItem })
+        navigation.navigate("detail", { property: selectedItem })
     }
     return (
         <View style={styles.container}>

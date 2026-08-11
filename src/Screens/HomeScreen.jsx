@@ -56,7 +56,14 @@ const gethomeData= async()=>{
     console.error("Error fetching home data:", error);
   }
 }
+const HotClick = (id, property) => {
+  console.log("id", id, property);
 
+  navigation.navigate("detail", {
+    id: id,
+    property: property,
+  });
+};
 
   const handleTabPress = (item) => {
     // Navigate based on tab label, or use another identifier
@@ -108,18 +115,43 @@ const gethomeData= async()=>{
 
           {/* Popular Localities */}
           <Text style={styles.sectionTitle}>Hot Selling Real Estate Projects in India</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {HotSelling.map((item, index) => (
-              <View key={index} style={styles.card}>
-                {/* {`https://api.squarebigha.com/${item?.primary_media?.file_url}`} */}
-                <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImg} />
-                <Text style={styles.cardTitle}>{item.apartment_society},{item.locality},{item.property_city}</Text>
-                <Text style={styles.cardSub}>{item.rating} ⭐ | ₹{formatPrice(Number(item.price) * Number(item.area))}</Text>
-                <Text style={styles.cardSub} numberOfLines={2} ellipsizeMode="tail">{item.description} </Text>
-                <Text style={styles.cardLink}>Know more →</Text>
-              </View>
-            ))}
-          </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+  {HotSelling.map((item, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.card}
+      activeOpacity={0.8}
+      onPress={() => HotClick(item.id, item)}
+    >
+      <Image
+        source={{
+          uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}`,
+        }}
+        style={styles.cardImg}
+      />
+
+      <Text style={styles.cardTitle} numberOfLines={1}>
+        {item.apartment_society}, {item.locality}, {item.property_city}
+      </Text>
+
+      <Text style={styles.cardSub}>
+        {item.rating} ⭐ | ₹{formatPrice(Number(item.price) * Number(item.area))}
+      </Text>
+
+      <Text
+        style={styles.cardSub}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {item.description}
+      </Text>
+
+      <Text style={styles.cardLink}>
+        Know more →
+      </Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
         </ScrollView>
 
         <View style={styles.postsec}>
@@ -154,9 +186,9 @@ const gethomeData= async()=>{
               <View key={index} style={styles.cardh}>
                 <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImgh} />
                 <View style={styles.textsec}>
-                  <Text style={styles.cardTitleh}>{item.apartment_society},{item.locality},{item.property_city}</Text>
-                  <Text style={styles.cardSubh}>{item.rating} ⭐ | ₹{Number(item.price) * Number(item.area)}</Text>
-                  <Text style={styles.cardSubh} numberOfLines={2} ellipsizeMode="tail">{item.description}</Text>
+                  <Text style={styles.cardTitleh} numberOfLines={1}>{item.apartment_society},{item.locality},{item.property_city}</Text>
+                  <Text style={styles.cardSubh}>{item.rating}  ₹{formatPrice(Number(item.price) * Number(item.area))}</Text>
+                  <Text style={styles.cardSubh} numberOfLines={1} ellipsizeMode="tail">{item.description}</Text>
                   <Text style={styles.cardLinkh}>Know more →</Text>
                 </View>
               </View>
@@ -172,22 +204,18 @@ const gethomeData= async()=>{
           {/* Popular Localities */}
           <Text style={styles.sectionTitle}>Recommended for You</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[
-              { name: "Sector 73", rating: "4.5", price: "₹3.7K/sq.ft.", properties: "800+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" }
-            ].map((item, index) => (
+            {Recommended.map((item, index) => (
               <View key={index} style={styles.cardR}>
                 <View style={styles.box}>
                   <View>
-                    <Image source={{ uri: item.img }} style={styles.cardImgR} />
+                    <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImgR} />
                   </View>
                   <View>
-                    <Text style={styles.cardTitle}>{item.name}</Text>
-                    <Text style={styles.cardSub}>{item.rating} ⭐ | {item.price}</Text>
-                    <Text style={styles.cardSub}>{item.properties} properties</Text>
+                    <Text style={styles.cardTitle}>{item.locality},{item.property_city}</Text>
+                    <Text style={styles.cardSub}>{item.rating}  {formatPrice(Number(item.price) * Number(item.area))}</Text>
+                 <Text style={styles.cardSub}>
+  {item.description?.split(" ").slice(0, 4).join(" ")}
+</Text>
                     <Text style={styles.cardLink}>Know more →</Text>
                   </View>
                 </View>
@@ -202,18 +230,12 @@ const gethomeData= async()=>{
           {/* Popular Localities */}
           <Text style={styles.sectionTitle}>Newly Launched Projects</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {[
-              { name: "Sector 73", rating: "4.5", price: "₹3.7K/sq.ft.", properties: "800+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" },
-              { name: "Sector 62", rating: "4.2", price: "₹4.1K/sq.ft.", properties: "600+", img: "https://i.postimg.cc/HsMmfHWq/download-1.jpg" }
-            ].map((item, index) => (
-              <View key={index} style={styles.card}>
-                <Image source={{ uri: item.img }} style={styles.cardImg} />
-                <Text style={styles.cardTitle}>{item.name}</Text>
-                <Text style={styles.cardSub}>{item.rating} ⭐ | {item.price}</Text>
-                <Text style={styles.cardSub}>{item.properties} properties</Text>
+            {Newly.map((item, index) => (
+              <View key={index} style={styles.card} onClick={() => HotClick(item.id, item.property_type)}>
+                <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImg} />
+                <Text style={styles.cardTitle} numberOfLines={1}>{item.apartment_society},{item.locality},{item.property_city}</Text>
+                <Text style={styles.cardSub}>{item.rating}  {formatPrice(Number(item.price) * Number(item.area))}</Text>
+                <Text style={styles.cardSub} numberOfLines={1} ellipsizeMode="tail">{item.description}</Text>
                 <Text style={styles.cardLink}>Know more →</Text>
               </View>
             ))}
