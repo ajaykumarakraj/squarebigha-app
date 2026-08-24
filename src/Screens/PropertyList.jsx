@@ -1,0 +1,1631 @@
+import React, { useEffect, useState } from "react";
+import {
+    View,
+    Text,
+    Image,
+    FlatList,
+    StyleSheet,
+    TouchableOpacity,
+    ScrollView,
+    TextInput,
+    Modal,
+    Dimensions,
+    ActivityIndicator,
+} from "react-native";
+
+import Feather from "react-native-vector-icons/Feather";
+import { useNavigation } from "@react-navigation/native";
+import axios from "axios";
+
+const { width } = Dimensions.get("window");
+
+const API_URL =
+    "https://api.squarebigha.com/api/search-property-data";
+
+const IMAGE_BASE_URL =
+    "https://api.squarebigha.com/";
+
+const tabs = [
+    "All",
+    "Owner Properties",
+    "Housing Verified",
+    "Apartment",
+];
+
+const FilterScreen = ({ route }) => {
+    const navigation = useNavigation();
+
+    const { searchData } = route.params || {};
+
+    const [filterVisible, setFilterVisible] = useState(false);
+
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+    const [selectedBHK, setSelectedBHK] = useState(null);
+    const [furnishing, setFurnishing] = useState(null);
+    const [selectedTab, setSelectedTab] = useState("All");
+
+    const [GetList, setGetList] = useState([]);
+
+    // Pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+
+    useEffect(() => {
+        setGetList([]);
+        setCurrentPage(1);
+        setLastPage(1);
+
+        getList(1);
+    }, [searchData]);
+
+    const getList = async (pageNumber = 1) => {
+        try {
+            if (pageNumber === 1) {
+                setLoading(true);
+            } else {
+                setLoadingMore(true);
+            }
+
+            const payload = {
+                listing_type: searchData?.category,
+
+                min_price: 1000,
+
+                max_price:
+                    searchData?.budget ?? 500000000,
+
+                bhk_type: searchData?.bhk,
+
+                property_sub_type: (
+                    searchData?.propertyType || []
+                ).map(
+                    (item) => item.property_subtype
+                ),
+
+                city:
+                    searchData?.location?.city || "",
+
+                state:
+                    searchData?.location?.state || "",
+
+                locality:
+                    searchData?.location?.locality || "",
+            };
+
+            console.log(
+                `PAGE ${pageNumber} POST DATA:`,
+                payload
+            );
+
+            const res = await axios.post(
+                `${API_URL}?page=${pageNumber}`,
+                payload
+            );
+
+            console.log(
+                `PAGE ${pageNumber} RESPONSE:`,
+                res?.data
+            );
+
+            const newData =
+                res?.data?.data || [];
+
+            const meta =
+                res?.data?.meta || {};
+
+            // First page
+            if (pageNumber === 1) {
+                setGetList(newData);
+            } else {
+                // Next pages append
+                setGetList((prev) => [
+                    ...prev,
+                    ...newData,
+                ]);
+            }
+
+            // API pagination data
+            setCurrentPage(
+                Number(meta.current_page) ||
+                pageNumber
+            );
+
+            setLastPage(
+                Number(meta.last_page) || 1
+            );
+        } catch (error) {
+            console.log(
+                "Search API Error:",
+                error?.response?.data ||
+                error?.message
+            );
+        } finally {
+            setLoading(false);
+            setLoadingMore(false);
+        }
+    };
+
+    // Load next page
+    const loadMore = () => {
+        if (
+            loading ||
+            loadingMore ||
+            currentPage >= lastPage
+        ) {
+            return;
+        }
+
+        const nextPage =
+            currentPage + 1;
+
+        console.log(
+            "Loading next page:",
+            nextPage
+        );
+
+        getList(nextPage);
+    };
+
+    const cardClick = (selectedItem) => {
+        navigation.navigate("detail", {
+            property: selectedItem,
+        });
+    };
+
+    const formatPrice = (price) => {
+        const amount = Number(price);
+
+        if (!amount) {
+            return "Price on request";
+        }
+
+        if (amount >= 10000000) {
+            return `₹${(
+                amount / 10000000
+            ).toFixed(2)} Cr`;
+        }
+
+        if (amount >= 100000) {
+            return `₹${(
+                amount / 100000
+            ).toFixed(2)} Lac`;
+        }
+
+        return `₹${amount.toLocaleString(
+            "en-IN"
+        )}`;
+    };
+
+    // Primary media + other media
+    const getImages = (item) => {
+        const images = [];
+
+        if (
+            item?.primary_media?.file_url
+        ) {
+            images.push(
+                `${IMAGE_BASE_URL}${item.primary_media.file_url}`
+            );
+        }
+
+        if (
+            Array.isArray(item?.media)
+        ) {
+            item.media.forEach(
+                (media) => {
+                    const fileUrl =
+                        media?.file_url ||
+                        media?.url ||
+                        media?.image_url ||
+                        media?.media_url;
+
+                    if (!fileUrl) {
+                        return;
+                    }
+
+                    const imageUrl =
+                        fileUrl.startsWith(
+                            "http"
+                        )
+                            ? fileUrl
+                            : `${IMAGE_BASE_URL}${fileUrl}`;
+
+                    if (
+                        !images.includes(
+                            imageUrl
+                        )
+                    ) {
+                        images.push(
+                            imageUrl
+                        );
+                    }
+                }
+            );
+        }
+
+        return images;
+    };
+
+    const renderPropertyCard = ({
+        item,
+    }) => {
+        const images = getImages(item);
+
+        const title =
+            item?.title ||
+            `${item?.bhk_type || ""} ${item?.property_sub_type ||
+            "Property"
+            }`;
+
+        const location =
+            item?.google_address ||
+            `${item?.locality || ""}${item?.property_city
+                ? `, ${item.property_city}`
+                : ""
+            }`;
+
+        return (
+            <TouchableOpacity
+                activeOpacity={0.95}
+                style={styles.card}
+                onPress={() =>
+                    cardClick(item)
+                }
+            >
+                {/* IMAGE SLIDER */}
+                <View
+                    style={
+                        styles.imageContainer
+                    }
+                >
+                    {images.length > 0 ? (
+                        <FlatList
+                            data={images}
+                            horizontal
+                            pagingEnabled
+                            showsHorizontalScrollIndicator={
+                                false
+                            }
+                            nestedScrollEnabled
+                            keyExtractor={(
+                                image,
+                                index
+                            ) =>
+                                `${image}-${index}`
+                            }
+                            renderItem={({
+                                item: image,
+                            }) => (
+                                <Image
+                                    source={{
+                                        uri: image,
+                                    }}
+                                    style={
+                                        styles.propertyImage
+                                    }
+                                    resizeMode="cover"
+                                />
+                            )}
+                        />
+                    ) : (
+                        <View
+                            style={
+                                styles.noImage
+                            }
+                        >
+                            <Feather
+                                name="image"
+                                size={45}
+                                color="#aaa"
+                            />
+
+                            <Text
+                                style={
+                                    styles.noImageText
+                                }
+                            >
+                                No Image Available
+                            </Text>
+                        </View>
+                    )}
+
+                    <View
+                        style={
+                            styles.topBadges
+                        }
+                    >
+                        <View
+                            style={
+                                styles.premiumBadge
+                            }
+                        >
+                            <Feather
+                                name="star"
+                                size={12}
+                                color="#fff"
+                            />
+
+                            <Text
+                                style={
+                                    styles.premiumText
+                                }
+                            >
+                                PREMIUM
+                            </Text>
+                        </View>
+
+                        {item?.active ===
+                            1 && (
+                                <View
+                                    style={
+                                        styles.activeBadge
+                                    }
+                                >
+                                    <Text
+                                        style={
+                                            styles.activeText
+                                        }
+                                    >
+                                        Active
+                                    </Text>
+                                </View>
+                            )}
+                    </View>
+
+                    {images.length >
+                        0 && (
+                            <View
+                                style={
+                                    styles.imageCount
+                                }
+                            >
+                                <Feather
+                                    name="camera"
+                                    size={12}
+                                    color="#fff"
+                                />
+
+                                <Text
+                                    style={
+                                        styles.imageCountText
+                                    }
+                                >
+                                    {images.length}
+                                </Text>
+                            </View>
+                        )}
+
+                    <TouchableOpacity
+                        style={
+                            styles.heartButton
+                        }
+                    >
+                        <Feather
+                            name="heart"
+                            size={19}
+                            color="#fff"
+                        />
+                    </TouchableOpacity>
+                </View>
+
+                {/* CARD CONTENT */}
+                <View
+                    style={
+                        styles.cardContent
+                    }
+                >
+                    {item?.user_type ===
+                        "agent" && (
+                            <View
+                                style={
+                                    styles.verifiedRow
+                                }
+                            >
+                                <View
+                                    style={
+                                        styles.verifiedBadge
+                                    }
+                                >
+                                    <Feather
+                                        name="check"
+                                        size={11}
+                                        color="#fff"
+                                    />
+                                </View>
+
+                                <Text
+                                    style={
+                                        styles.verifiedText
+                                    }
+                                >
+                                    Verified Agent
+                                </Text>
+                            </View>
+                        )}
+
+                    <Text
+                        style={styles.title}
+                        numberOfLines={2}
+                    >
+                        {title}
+                    </Text>
+
+                    <View
+                        style={
+                            styles.locationRow
+                        }
+                    >
+                        <Feather
+                            name="map-pin"
+                            size={15}
+                            color="#777"
+                        />
+
+                        <Text
+                            style={
+                                styles.location
+                            }
+                            numberOfLines={1}
+                        >
+                            {location}
+                        </Text>
+                    </View>
+
+                    <View
+                        style={
+                            styles.detailsRow
+                        }
+                    >
+                        {item?.bhk_type && (
+                            <View
+                                style={
+                                    styles.detailItem
+                                }
+                            >
+                                <Feather
+                                    name="home"
+                                    size={15}
+                                    color="#555"
+                                />
+
+                                <Text
+                                    style={
+                                        styles.detailText
+                                    }
+                                >
+                                    {
+                                        item.bhk_type
+                                    }
+                                </Text>
+                            </View>
+                        )}
+
+                        {item?.bathrooms && (
+                            <View
+                                style={
+                                    styles.detailItem
+                                }
+                            >
+                                <Feather
+                                    name="droplet"
+                                    size={15}
+                                    color="#555"
+                                />
+
+                                <Text
+                                    style={
+                                        styles.detailText
+                                    }
+                                >
+                                    {
+                                        item.bathrooms
+                                    }{" "}
+                                    Bath
+                                </Text>
+                            </View>
+                        )}
+
+                        {item?.area && (
+                            <View
+                                style={
+                                    styles.detailItem
+                                }
+                            >
+                                <Feather
+                                    name="maximize"
+                                    size={15}
+                                    color="#555"
+                                />
+
+                                <Text
+                                    style={
+                                        styles.detailText
+                                    }
+                                >
+                                    {
+                                        item.area
+                                    }{" "}
+                                    {
+                                        item.area_unit
+                                    }
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+                    <View
+                        style={styles.divider}
+                    />
+
+                    <View
+                        style={
+                            styles.bottomRow
+                        }
+                    >
+                        <View>
+                            <Text
+                                style={
+                                    styles.price
+                                }
+                            >
+                                {formatPrice(
+                                    item?.total_price
+                                )}
+                            </Text>
+
+                            {item?.price &&
+                                item?.price_unit && (
+                                    <Text
+                                        style={
+                                            styles.pricePerSqft
+                                        }
+                                    >
+                                        ₹
+                                        {Number(
+                                            item.price
+                                        ).toLocaleString(
+                                            "en-IN"
+                                        )}{" "}
+                                        /{" "}
+                                        {
+                                            item.price_unit
+                                        }
+                                    </Text>
+                                )}
+                        </View>
+
+                        {item?.furnishing && (
+                            <View
+                                style={
+                                    styles.furnishingBadge
+                                }
+                            >
+                                <Text
+                                    style={
+                                        styles.furnishingText
+                                    }
+                                >
+                                    {
+                                        item.furnishing
+                                    }
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+
+                    <View
+                        style={
+                            styles.propertyInfoRow
+                        }
+                    >
+                        <Text
+                            style={
+                                styles.propertyType
+                            }
+                        >
+                            {
+                                item?.property_sub_type
+                            }
+                        </Text>
+
+                        {item?.status && (
+                            <Text
+                                style={
+                                    styles.status
+                                }
+                            >
+                                {item.status}
+                            </Text>
+                        )}
+                    </View>
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
+    return (
+        <View
+            style={styles.container}
+        >
+            {/* HEADER */}
+            <View
+                style={
+                    styles.searchFilterContainer
+                }
+            >
+                <TouchableOpacity
+                    style={
+                        styles.backButton
+                    }
+                    onPress={() =>
+                        navigation.goBack()
+                    }
+                >
+                    <Feather
+                        name="arrow-left"
+                        size={24}
+                        color="#000"
+                    />
+                </TouchableOpacity>
+
+                <TextInput
+                    style={
+                        styles.searchInput
+                    }
+                    placeholder={
+                        searchData?.location
+                            ?.locality ||
+                        searchData?.location
+                            ?.city ||
+                        "Search location"
+                    }
+                    placeholderTextColor="#999"
+                />
+
+                <TouchableOpacity
+                    style={
+                        styles.filterBtn
+                    }
+                    onPress={() =>
+                        setFilterVisible(
+                            true
+                        )
+                    }
+                >
+                    <Feather
+                        name="filter"
+                        size={20}
+                        color="#5a2bd0"
+                    />
+
+                    <Text
+                        style={
+                            styles.filterText
+                        }
+                    >
+                        Filters
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
+            {/* TABS */}
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={
+                    false
+                }
+                style={
+                    styles.tabsContainer
+                }
+            >
+                {tabs.map(
+                    (tab, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={[
+                                styles.tab,
+                                selectedTab ===
+                                tab &&
+                                styles.activeTab,
+                            ]}
+                            onPress={() =>
+                                setSelectedTab(
+                                    tab
+                                )
+                            }
+                        >
+                            <Text
+                                style={[
+                                    styles.tabText,
+                                    selectedTab ===
+                                    tab &&
+                                    styles.activeTabText,
+                                ]}
+                            >
+                                {tab}
+                            </Text>
+                        </TouchableOpacity>
+                    )
+                )}
+            </ScrollView>
+
+            {/* RESULT */}
+            <View
+                style={
+                    styles.resultHeader
+                }
+            >
+                <Text
+                    style={
+                        styles.resultCount
+                    }
+                >
+                    {GetList.length} Properties
+                </Text>
+
+                <Text
+                    style={
+                        styles.sortText
+                    }
+                >
+                    Page {currentPage} of{" "}
+                    {lastPage}
+                </Text>
+            </View>
+
+            {/* LIST */}
+            {loading ? (
+                <View
+                    style={
+                        styles.loader
+                    }
+                >
+                    <ActivityIndicator
+                        size="large"
+                        color="#5a2bd0"
+                    />
+
+                    <Text
+                        style={
+                            styles.loadingText
+                        }
+                    >
+                        Finding properties...
+                    </Text>
+                </View>
+            ) : (
+                <FlatList
+                    data={GetList}
+                    keyExtractor={(item) =>
+                        String(item.id)
+                    }
+                    renderItem={
+                        renderPropertyCard
+                    }
+                    showsVerticalScrollIndicator={
+                        false
+                    }
+                    contentContainerStyle={
+                        styles.listContent
+                    }
+                    onEndReached={
+                        loadMore
+                    }
+                    onEndReachedThreshold={
+                        0.5
+                    }
+                    ListFooterComponent={
+                        loadingMore ? (
+                            <View
+                                style={
+                                    styles.footerLoader
+                                }
+                            >
+                                <ActivityIndicator
+                                    size="small"
+                                    color="#5a2bd0"
+                                />
+
+                                <Text
+                                    style={
+                                        styles.loadingMoreText
+                                    }
+                                >
+                                    Loading more...
+                                </Text>
+                            </View>
+                        ) : null
+                    }
+                    ListEmptyComponent={
+                        <View
+                            style={
+                                styles.emptyContainer
+                            }
+                        >
+                            <Feather
+                                name="home"
+                                size={50}
+                                color="#bbb"
+                            />
+
+                            <Text
+                                style={
+                                    styles.emptyTitle
+                                }
+                            >
+                                No Properties Found
+                            </Text>
+
+                            <Text
+                                style={
+                                    styles.emptyText
+                                }
+                            >
+                                Try changing your search
+                                filters.
+                            </Text>
+                        </View>
+                    }
+                />
+            )}
+
+            {/* FILTER MODAL */}
+            <Modal
+                visible={filterVisible}
+                animationType="slide"
+                transparent
+                onRequestClose={() =>
+                    setFilterVisible(
+                        false
+                    )
+                }
+            >
+                <View
+                    style={
+                        styles.modalOverlay
+                    }
+                >
+                    <View
+                        style={
+                            styles.modalContainer
+                        }
+                    >
+                        <View
+                            style={
+                                styles.modalHeader
+                            }
+                        >
+                            <Text
+                                style={
+                                    styles.modalTitle
+                                }
+                            >
+                                Apply Filters
+                            </Text>
+
+                            <TouchableOpacity
+                                onPress={() =>
+                                    setFilterVisible(
+                                        false
+                                    )
+                                }
+                            >
+                                <Feather
+                                    name="x"
+                                    size={24}
+                                    color="#222"
+                                />
+                            </TouchableOpacity>
+                        </View>
+
+                        <Text
+                            style={
+                                styles.label
+                            }
+                        >
+                            Price Range (₹)
+                        </Text>
+
+                        <View
+                            style={
+                                styles.priceRow
+                            }
+                        >
+                            <TextInput
+                                placeholder="Min"
+                                keyboardType="numeric"
+                                style={
+                                    styles.priceInput
+                                }
+                                value={
+                                    minPrice
+                                }
+                                onChangeText={
+                                    setMinPrice
+                                }
+                            />
+
+                            <Text
+                                style={{
+                                    marginHorizontal: 10,
+                                    color: "#777",
+                                }}
+                            >
+                                to
+                            </Text>
+
+                            <TextInput
+                                placeholder="Max"
+                                keyboardType="numeric"
+                                style={
+                                    styles.priceInput
+                                }
+                                value={
+                                    maxPrice
+                                }
+                                onChangeText={
+                                    setMaxPrice
+                                }
+                            />
+                        </View>
+
+                        <Text
+                            style={
+                                styles.label
+                            }
+                        >
+                            BHK Type
+                        </Text>
+
+                        <View
+                            style={
+                                styles.optionsRow
+                            }
+                        >
+                            {[1, 2, 3, 4].map(
+                                (bhk) => (
+                                    <TouchableOpacity
+                                        key={
+                                            bhk
+                                        }
+                                        style={[
+                                            styles.optionButton,
+                                            selectedBHK ===
+                                            bhk &&
+                                            styles.optionSelected,
+                                        ]}
+                                        onPress={() =>
+                                            setSelectedBHK(
+                                                bhk
+                                            )
+                                        }
+                                    >
+                                        <Text
+                                            style={
+                                                selectedBHK ===
+                                                    bhk
+                                                    ? styles.optionSelectedText
+                                                    : styles.optionText
+                                            }
+                                        >
+                                            {bhk} BHK
+                                        </Text>
+                                    </TouchableOpacity>
+                                )
+                            )}
+                        </View>
+
+                        <Text
+                            style={
+                                styles.label
+                            }
+                        >
+                            Furnishing
+                        </Text>
+
+                        <View
+                            style={
+                                styles.optionsRow
+                            }
+                        >
+                            {[
+                                "Furnished",
+                                "Semi Furnished",
+                                "Unfurnished",
+                            ].map(
+                                (
+                                    type
+                                ) => (
+                                    <TouchableOpacity
+                                        key={
+                                            type
+                                        }
+                                        style={[
+                                            styles.optionButton,
+                                            furnishing ==
+                                            type &&
+                                            styles.optionSelected,
+                                        ]}
+                                        onPress={() =>
+                                            setFurnishing(
+                                                type
+                                            )
+                                        }
+                                    >
+                                        <Text
+                                            style={
+                                                furnishing ==
+                                                    type
+                                                    ? styles.optionSelectedText
+                                                    : styles.optionText
+                                            }
+                                        >
+                                            {
+                                                type
+                                            }
+                                        </Text>
+                                    </TouchableOpacity>
+                                )
+                            )}
+                        </View>
+
+                        <View
+                            style={
+                                styles.actions
+                            }
+                        >
+                            <TouchableOpacity
+                                style={[
+                                    styles.actionButton,
+                                    {
+                                        backgroundColor:
+                                            "#eee",
+                                    },
+                                ]}
+                                onPress={() => {
+                                    setMinPrice(
+                                        ""
+                                    );
+                                    setMaxPrice(
+                                        ""
+                                    );
+                                    setSelectedBHK(
+                                        null
+                                    );
+                                    setFurnishing(
+                                        null
+                                    );
+                                }}
+                            >
+                                <Text
+                                    style={[
+                                        styles.actionText,
+                                        {
+                                            color: "#333",
+                                        },
+                                    ]}
+                                >
+                                    Reset
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.actionButton,
+                                    {
+                                        backgroundColor:
+                                            "#5a2bd0",
+                                    },
+                                ]}
+                                onPress={() =>
+                                    setFilterVisible(
+                                        false
+                                    )
+                                }
+                            >
+                                <Text
+                                    style={[
+                                        styles.actionText,
+                                        {
+                                            color: "#fff",
+                                        },
+                                    ]}
+                                >
+                                    Apply
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+        </View>
+    );
+};
+
+export default FilterScreen;
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: "#f7f7f9",
+        paddingTop: 20,
+    },
+
+    searchFilterContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginHorizontal: 12,
+        marginBottom: 10,
+    },
+
+    backButton: {
+        width: 40,
+        height: 42,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    searchInput: {
+        flex: 1,
+        height: 42,
+        backgroundColor: "#fff",
+        borderRadius: 10,
+        paddingHorizontal: 15,
+        marginRight: 8,
+        fontSize: 15,
+        borderWidth: 1,
+        borderColor: "#eee",
+    },
+
+    filterBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#f0eaff",
+        paddingHorizontal: 12,
+        height: 42,
+        borderRadius: 10,
+    },
+
+    filterText: {
+        marginLeft: 5,
+        color: "#5a2bd0",
+        fontWeight: "700",
+    },
+
+    tabsContainer: {
+        flexGrow: 0,
+        paddingHorizontal: 12,
+        marginBottom: 5,
+    },
+
+    tab: {
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        marginRight: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        backgroundColor: "#fff",
+    },
+
+    activeTab: {
+        backgroundColor: "#5a2bd0",
+        borderColor: "#5a2bd0",
+    },
+
+    tabText: {
+        fontSize: 13,
+        color: "#555",
+        fontWeight: "500",
+    },
+
+    activeTabText: {
+        color: "#fff",
+        fontWeight: "700",
+    },
+
+    resultHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 14,
+        paddingVertical: 10,
+    },
+
+    resultCount: {
+        fontSize: 15,
+        fontWeight: "700",
+        color: "#222",
+    },
+
+    sortText: {
+        fontSize: 13,
+        color: "#777",
+    },
+
+    listContent: {
+        paddingBottom: 30,
+    },
+
+    card: {
+        backgroundColor: "#fff",
+        marginHorizontal: 12,
+        marginBottom: 16,
+        borderRadius: 16,
+        overflow: "hidden",
+        elevation: 4,
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+    },
+
+    imageContainer: {
+        height: 210,
+        width: "100%",
+        position: "relative",
+        backgroundColor: "#eee",
+    },
+
+    propertyImage: {
+        width: width - 24,
+        height: 210,
+    },
+
+    noImage: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#eee",
+    },
+
+    noImageText: {
+        marginTop: 5,
+        color: "#999",
+        fontSize: 13,
+    },
+
+    topBadges: {
+        position: "absolute",
+        top: 12,
+        left: 12,
+        right: 12,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+
+    premiumBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#5a2bd0",
+        paddingHorizontal: 9,
+        paddingVertical: 6,
+        borderRadius: 7,
+    },
+
+    premiumText: {
+        color: "#fff",
+        fontSize: 10,
+        fontWeight: "800",
+        marginLeft: 4,
+    },
+
+    activeBadge: {
+        backgroundColor: "#fff",
+        paddingHorizontal: 9,
+        paddingVertical: 6,
+        borderRadius: 7,
+    },
+
+    activeText: {
+        color: "#16833b",
+        fontSize: 11,
+        fontWeight: "700",
+    },
+
+    imageCount: {
+        position: "absolute",
+        bottom: 12,
+        left: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(0,0,0,0.55)",
+        paddingHorizontal: 8,
+        paddingVertical: 5,
+        borderRadius: 7,
+    },
+
+    imageCountText: {
+        color: "#fff",
+        marginLeft: 4,
+        fontSize: 11,
+        fontWeight: "600",
+    },
+
+    heartButton: {
+        position: "absolute",
+        right: 12,
+        bottom: 12,
+        width: 38,
+        height: 38,
+        borderRadius: 20,
+        backgroundColor: "rgba(0,0,0,0.45)",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    cardContent: {
+        padding: 14,
+    },
+
+    verifiedRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 5,
+    },
+
+    verifiedBadge: {
+        width: 17,
+        height: 17,
+        borderRadius: 9,
+        backgroundColor: "#16833b",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    verifiedText: {
+        color: "#16833b",
+        fontSize: 11,
+        fontWeight: "700",
+        marginLeft: 5,
+    },
+
+    title: {
+        fontSize: 18,
+        fontWeight: "800",
+        color: "#171717",
+        marginTop: 2,
+        lineHeight: 23,
+    },
+
+    locationRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 7,
+    },
+
+    location: {
+        flex: 1,
+        fontSize: 13,
+        color: "#666",
+        marginLeft: 5,
+    },
+
+    detailsRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        flexWrap: "wrap",
+        marginTop: 12,
+    },
+
+    detailItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginRight: 15,
+        marginBottom: 5,
+    },
+
+    detailText: {
+        fontSize: 12,
+        color: "#555",
+        marginLeft: 5,
+        fontWeight: "500",
+    },
+
+    divider: {
+        height: 1,
+        backgroundColor: "#eee",
+        marginVertical: 11,
+    },
+
+    bottomRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+
+    price: {
+        fontSize: 20,
+        fontWeight: "900",
+        color: "#171717",
+    },
+
+    pricePerSqft: {
+        fontSize: 11,
+        color: "#888",
+        marginTop: 2,
+    },
+
+    furnishingBadge: {
+        backgroundColor: "#f3efff",
+        paddingHorizontal: 9,
+        paddingVertical: 6,
+        borderRadius: 7,
+    },
+
+    furnishingText: {
+        color: "#5a2bd0",
+        fontSize: 10,
+        fontWeight: "700",
+    },
+
+    propertyInfoRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: 10,
+    },
+
+    propertyType: {
+        fontSize: 12,
+        color: "#555",
+        fontWeight: "600",
+        textTransform: "capitalize",
+    },
+
+    status: {
+        fontSize: 11,
+        color: "#16833b",
+        fontWeight: "700",
+        textTransform: "capitalize",
+    },
+
+    loader: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    loadingText: {
+        marginTop: 10,
+        color: "#777",
+        fontSize: 14,
+    },
+
+    footerLoader: {
+        paddingVertical: 20,
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "row",
+    },
+
+    loadingMoreText: {
+        marginLeft: 8,
+        color: "#777",
+        fontSize: 13,
+    },
+
+    emptyContainer: {
+        alignItems: "center",
+        justifyContent: "center",
+        paddingTop: 80,
+    },
+
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: "#333",
+        marginTop: 12,
+    },
+
+    emptyText: {
+        fontSize: 13,
+        color: "#888",
+        marginTop: 5,
+    },
+
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "flex-end",
+    },
+
+    modalContainer: {
+        backgroundColor: "#fff",
+        padding: 20,
+        borderTopLeftRadius: 22,
+        borderTopRightRadius: 22,
+    },
+
+    modalHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: "800",
+        color: "#222",
+        marginBottom: 20,
+    },
+
+    label: {
+        fontSize: 14,
+        fontWeight: "700",
+        marginVertical: 10,
+        color: "#333",
+    },
+
+    priceRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        marginBottom: 10,
+    },
+
+    priceInput: {
+        flex: 1,
+        borderWidth: 1,
+        borderColor: "#ddd",
+        borderRadius: 10,
+        paddingHorizontal: 10,
+        paddingVertical: 9,
+        fontSize: 14,
+        backgroundColor: "#f9f9f9",
+    },
+
+    optionsRow: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        marginBottom: 10,
+    },
+
+    optionButton: {
+        borderWidth: 1,
+        borderColor: "#aaa",
+        borderRadius: 20,
+        paddingVertical: 7,
+        paddingHorizontal: 14,
+        marginRight: 8,
+        marginBottom: 8,
+    },
+
+    optionText: {
+        color: "#333",
+    },
+
+    optionSelected: {
+        backgroundColor: "#5a2bd0",
+        borderColor: "#5a2bd0",
+    },
+
+    optionSelectedText: {
+        color: "#fff",
+        fontWeight: "700",
+    },
+
+    actions: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: 20,
+    },
+
+    actionButton: {
+        flex: 1,
+        paddingVertical: 13,
+        borderRadius: 10,
+        alignItems: "center",
+        marginHorizontal: 5,
+    },
+
+    actionText: {
+        fontSize: 15,
+        fontWeight: "700",
+    },
+});

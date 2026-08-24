@@ -5,12 +5,31 @@ import { useEffect } from 'react';
 import axios from 'axios';
 import { useState } from 'react';
 const tabname = [
-  { label: 'Home', icon: 'home-outline', screen: 'Home' },
-  { label: 'Rent', icon: 'cash-outline', screen: 'search' },
-  { label: 'Commercial', icon: 'business-outline', screen: 'search' },
-  { label: 'Plots', icon: 'layers-outline', screen: 'PlotsScreen' },
-  { label: 'Project', icon: 'construct-outline', screen: 'ProjectScreen' },
-  { label: 'PG/CO Living', icon: 'people-outline', screen: 'PgScreen' },
+  {
+    label: "Buy",
+    icon: "home-outline",
+    category: "sale",
+  },
+  {
+    label: "Rent",
+    icon: "cash-outline",
+    category: "rent",
+  },
+  {
+    label: "Commercial",
+    icon: "business-outline",
+    category: "commercial",
+  },
+  {
+    label: "Plots",
+    icon: "layers-outline",
+    category: "plot",
+  },
+  {
+    label: "Project",
+    icon: "construct-outline",
+    category: "project",
+  },
 ];
 
 
@@ -64,11 +83,19 @@ const HotClick = (id, property) => {
     property: property,
   });
 };
+const handleTabPress = (item) => {
+  console.log("Selected:", item);
 
-  const handleTabPress = (item) => {
-    // Navigate based on tab label, or use another identifier
-    navigation.navigate(item.screen);
-  };
+  navigation.navigate("search", {
+    category: item.category,
+    filters: {},
+  });
+};
+  // const handleTabPress = (item) => {
+  //   // Navigate based on tab label, or use another identifier
+  //   console.log(item,"tab select")
+  //   navigation.navigate("search",item.category);
+  // };
 
   console.log("HotSelling:", HotSelling);
   return (
@@ -89,22 +116,44 @@ const HotClick = (id, property) => {
         {/* Categories */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.categories}>
-            {tabname.map((item, index) => (
-              <TouchableOpacity key={index} style={[styles.catBtn, index === 0 && styles.activeCat]} onPress={() => handleTabPress(item)} >
+        {tabname.map((item, index) => (
+  <TouchableOpacity
+    key={index}
+    onPress={() => handleTabPress(item)}
+    style={[styles.catBtn, index === 0 && styles.activeCat]}
+  >
+    <Ionicons
+      name={item.icon}
+     
+       size={18} color={index === 0 ? "#fff" : "#444"}
+    />
 
-                <Ionicons name={item.icon} size={18} color={index === 0 ? "#fff" : "#444"} />
-                <Text style={[styles.catText, index === 0 && styles.activeCatText]}>{item.label}</Text>
-              </TouchableOpacity>
-            ))}
+    <Text  style={[styles.catText, index === 0 && styles.activeCatText]}>{item.label}</Text>
+  </TouchableOpacity>
+))}
           </View>
         </ScrollView>
         {/* Search Bar */}
-        <View style={styles.searchBar}>
-          <TextInput placeholder="Search locality, landmark, project ..." style={{ flex: 1 }} />
-          <TouchableOpacity>
-            <Ionicons name="search" size={24} color="#fff" style={styles.searchIcon} />
-          </TouchableOpacity>
-        </View>
+       <TouchableOpacity
+  onPress={() => handleTabPress("sale")}
+  activeOpacity={0.8}
+>
+  <View style={styles.searchBar}>
+    <TextInput
+      placeholder="Search locality, landmark, project ..."
+      style={{ flex: 1 }}
+      editable={false}
+      pointerEvents="none"
+    />
+
+    <Ionicons
+      name="search"
+      size={24}
+      color="#fff"
+      style={styles.searchIcon}
+    />
+  </View>
+</TouchableOpacity>
         <ScrollView showsVerticalScrollIndicator={true}>
           {/* Banner */}
           <View style={styles.banner}>

@@ -5,7 +5,7 @@ import TabNavigator from './TabNavigator';
 import React from 'react';
 import SettingScreen from "../Screens/SettingScreen"
 import SearchScreen from "../Screens/SearchScreen"
-import FilterScreen from "../Screens/FilterScreen"
+import PropertyList from "../Screens/PropertyList"
 import DetailScreen from "../Screens/DetailScreen"
 const Stack = createStackNavigator();
 
@@ -23,8 +23,8 @@ const AppNavigator = () => {
                 {/* Extra screens that can be pushed on top of tabs */}
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name="setting" component={SettingScreen} />
-                <Stack.Screen name="search" component={SearchScreen} />
-                <Stack.Screen name="filter" component={FilterScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="search" component={SearchScreen} options={{ headerShown: false }}/>
+                <Stack.Screen name="PropertyList" component={PropertyList} options={{ headerShown: false }} />
                 <Stack.Screen name="detail" component={DetailScreen} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
