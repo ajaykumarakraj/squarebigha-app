@@ -25,25 +25,22 @@ const API_URL =
 const IMAGE_BASE_URL =
     "https://api.squarebigha.com/";
 
-const tabs = [
-    "All",
-    "Owner Properties",
-    "Housing Verified",
-    "Apartment",
-];
+// const tabs = [
+//     "All",
+//     "Owner Properties",
+//     "Housing Verified",
+//     "Apartment",
+// ];
 
 const FilterScreen = ({ route }) => {
     const navigation = useNavigation();
 
     const { searchData } = route.params || {};
 
-    const [filterVisible, setFilterVisible] = useState(false);
 
-    const [minPrice, setMinPrice] = useState("");
-    const [maxPrice, setMaxPrice] = useState("");
-    const [selectedBHK, setSelectedBHK] = useState(null);
-    const [furnishing, setFurnishing] = useState(null);
-    const [selectedTab, setSelectedTab] = useState("All");
+console.log("get data",searchData)
+ 
+    // const [selectedTab, setSelectedTab] = useState("All");
 
     const [GetList, setGetList] = useState([]);
 
@@ -71,12 +68,10 @@ const FilterScreen = ({ route }) => {
 
             const payload = {
                 listing_type: searchData?.category,
-
                 min_price: 1000,
-
-                max_price:
-                    searchData?.budget ?? 500000000,
-
+                max_price:  searchData?.budget ??
+    searchData?.rent?.max ??
+    500000000,
                 bhk_type: searchData?.bhk,
 
                 property_sub_type: (
@@ -85,18 +80,21 @@ const FilterScreen = ({ route }) => {
                     (item) => item.property_subtype
                 ),
 
+                 commercial_list_type:(
+                    searchData?.commercialType || []
+                ).map(
+                    (item) => item.property_subtype
+                ),
                 city:
                     searchData?.location?.city || "",
-
                 state:
                     searchData?.location?.state || "",
-
                 locality:
                     searchData?.location?.locality || "",
             };
 
             console.log(
-                `PAGE ${pageNumber} POST DATA:`,
+                ` POST DATA:`,
                 payload
             );
 
@@ -106,7 +104,7 @@ const FilterScreen = ({ route }) => {
             );
 
             console.log(
-                `PAGE ${pageNumber} RESPONSE:`,
+                `RESPONSE:`,
                 res?.data
             );
 
@@ -673,8 +671,7 @@ const FilterScreen = ({ route }) => {
 
                 <TextInput
                     style={
-                        styles.searchInput
-                    }
+                        styles.searchInput }
                     placeholder={
                         searchData?.location
                             ?.locality ||
@@ -689,10 +686,8 @@ const FilterScreen = ({ route }) => {
                     style={
                         styles.filterBtn
                     }
-                    onPress={() =>
-                        setFilterVisible(
-                            true
-                        )
+                     onPress={() =>
+                        navigation.goBack()
                     }
                 >
                     <Feather
@@ -712,7 +707,7 @@ const FilterScreen = ({ route }) => {
             </View>
 
             {/* TABS */}
-            <ScrollView
+            {/* <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={
                     false
@@ -750,7 +745,7 @@ const FilterScreen = ({ route }) => {
                         </TouchableOpacity>
                     )
                 )}
-            </ScrollView>
+            </ScrollView> */}
 
             {/* RESULT */}
             <View
@@ -872,275 +867,7 @@ const FilterScreen = ({ route }) => {
                 />
             )}
 
-            {/* FILTER MODAL */}
-            <Modal
-                visible={filterVisible}
-                animationType="slide"
-                transparent
-                onRequestClose={() =>
-                    setFilterVisible(
-                        false
-                    )
-                }
-            >
-                <View
-                    style={
-                        styles.modalOverlay
-                    }
-                >
-                    <View
-                        style={
-                            styles.modalContainer
-                        }
-                    >
-                        <View
-                            style={
-                                styles.modalHeader
-                            }
-                        >
-                            <Text
-                                style={
-                                    styles.modalTitle
-                                }
-                            >
-                                Apply Filters
-                            </Text>
-
-                            <TouchableOpacity
-                                onPress={() =>
-                                    setFilterVisible(
-                                        false
-                                    )
-                                }
-                            >
-                                <Feather
-                                    name="x"
-                                    size={24}
-                                    color="#222"
-                                />
-                            </TouchableOpacity>
-                        </View>
-
-                        <Text
-                            style={
-                                styles.label
-                            }
-                        >
-                            Price Range (₹)
-                        </Text>
-
-                        <View
-                            style={
-                                styles.priceRow
-                            }
-                        >
-                            <TextInput
-                                placeholder="Min"
-                                keyboardType="numeric"
-                                style={
-                                    styles.priceInput
-                                }
-                                value={
-                                    minPrice
-                                }
-                                onChangeText={
-                                    setMinPrice
-                                }
-                            />
-
-                            <Text
-                                style={{
-                                    marginHorizontal: 10,
-                                    color: "#777",
-                                }}
-                            >
-                                to
-                            </Text>
-
-                            <TextInput
-                                placeholder="Max"
-                                keyboardType="numeric"
-                                style={
-                                    styles.priceInput
-                                }
-                                value={
-                                    maxPrice
-                                }
-                                onChangeText={
-                                    setMaxPrice
-                                }
-                            />
-                        </View>
-
-                        <Text
-                            style={
-                                styles.label
-                            }
-                        >
-                            BHK Type
-                        </Text>
-
-                        <View
-                            style={
-                                styles.optionsRow
-                            }
-                        >
-                            {[1, 2, 3, 4].map(
-                                (bhk) => (
-                                    <TouchableOpacity
-                                        key={
-                                            bhk
-                                        }
-                                        style={[
-                                            styles.optionButton,
-                                            selectedBHK ===
-                                            bhk &&
-                                            styles.optionSelected,
-                                        ]}
-                                        onPress={() =>
-                                            setSelectedBHK(
-                                                bhk
-                                            )
-                                        }
-                                    >
-                                        <Text
-                                            style={
-                                                selectedBHK ===
-                                                    bhk
-                                                    ? styles.optionSelectedText
-                                                    : styles.optionText
-                                            }
-                                        >
-                                            {bhk} BHK
-                                        </Text>
-                                    </TouchableOpacity>
-                                )
-                            )}
-                        </View>
-
-                        <Text
-                            style={
-                                styles.label
-                            }
-                        >
-                            Furnishing
-                        </Text>
-
-                        <View
-                            style={
-                                styles.optionsRow
-                            }
-                        >
-                            {[
-                                "Furnished",
-                                "Semi Furnished",
-                                "Unfurnished",
-                            ].map(
-                                (
-                                    type
-                                ) => (
-                                    <TouchableOpacity
-                                        key={
-                                            type
-                                        }
-                                        style={[
-                                            styles.optionButton,
-                                            furnishing ==
-                                            type &&
-                                            styles.optionSelected,
-                                        ]}
-                                        onPress={() =>
-                                            setFurnishing(
-                                                type
-                                            )
-                                        }
-                                    >
-                                        <Text
-                                            style={
-                                                furnishing ==
-                                                    type
-                                                    ? styles.optionSelectedText
-                                                    : styles.optionText
-                                            }
-                                        >
-                                            {
-                                                type
-                                            }
-                                        </Text>
-                                    </TouchableOpacity>
-                                )
-                            )}
-                        </View>
-
-                        <View
-                            style={
-                                styles.actions
-                            }
-                        >
-                            <TouchableOpacity
-                                style={[
-                                    styles.actionButton,
-                                    {
-                                        backgroundColor:
-                                            "#eee",
-                                    },
-                                ]}
-                                onPress={() => {
-                                    setMinPrice(
-                                        ""
-                                    );
-                                    setMaxPrice(
-                                        ""
-                                    );
-                                    setSelectedBHK(
-                                        null
-                                    );
-                                    setFurnishing(
-                                        null
-                                    );
-                                }}
-                            >
-                                <Text
-                                    style={[
-                                        styles.actionText,
-                                        {
-                                            color: "#333",
-                                        },
-                                    ]}
-                                >
-                                    Reset
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[
-                                    styles.actionButton,
-                                    {
-                                        backgroundColor:
-                                            "#5a2bd0",
-                                    },
-                                ]}
-                                onPress={() =>
-                                    setFilterVisible(
-                                        false
-                                    )
-                                }
-                            >
-                                <Text
-                                    style={[
-                                        styles.actionText,
-                                        {
-                                            color: "#fff",
-                                        },
-                                    ]}
-                                >
-                                    Apply
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
+           
         </View>
     );
 };

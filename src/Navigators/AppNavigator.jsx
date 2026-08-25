@@ -6,7 +6,7 @@ import React from 'react';
 import SettingScreen from "../Screens/SettingScreen"
 import SearchScreen from "../Screens/SearchScreen"
 import PropertyList from "../Screens/PropertyList"
-import DetailScreen from "../Screens/DetailScreen"
+import DetailScreen from "../Screens/DetailScreen" 
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {

@@ -7,7 +7,7 @@ import {
 import PropertyTypeFilter from "./PropertyTypeFilter";
 import RentBudgetFilter from "./RentBudgetFilter";
 import BHKFilter from "./BHKFilter";
-import FurnishingFilter from "./FurnishingFilter";
+// import FurnishingFilter from "./FurnishingFilter";
 
 const RentFilter = ({ filters, updateFilter }) => {
   return (
@@ -44,14 +44,14 @@ const RentFilter = ({ filters, updateFilter }) => {
       </View>
 
       {/* Furnishing */}
-      <View style={styles.section}>
+      {/* <View style={styles.section}>
         <FurnishingFilter
           value={filters.furnishing}
           onChange={(value) =>
             updateFilter("furnishing", value)
           }
         />
-      </View>
+      </View> */}
 
     </View>
   );

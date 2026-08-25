@@ -2,50 +2,126 @@ import React from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
 } from "react-native";
 
-const RentBudgetFilter = ({ value, onChange }) => {
-  const budgets = [
-    "₹5,000",
-    "₹10,000",
-    "₹20,000",
-    "₹30,000",
-    "₹50,000+",
-  ];
+import Slider from "@react-native-community/slider";
+
+const MIN_RENT = 5000;
+const MAX_RENT = 500000;
+const STEP = 1000;
+
+const RentBudgetFilter = ({
+  value = {
+    min: MIN_RENT,
+    max: MAX_RENT,
+  },
+  onChange,
+}) => {
+  const minValue =
+    Number(value?.min) || MIN_RENT;
+
+  const maxValue =
+    Number(value?.max) || MAX_RENT;
+
+  const formatRent = (amount) => {
+    if (amount >= 100000) {
+      return `₹${(
+        amount / 100000
+      ).toFixed(1)} Lac`;
+    }
+
+    return `₹${Math.round(
+      amount / 1000
+    )}K`;
+  };
+
+  // const handleMinChange = (newMin) => {
+  //   // Minimum maximum se upar nahi ja sakta
+  //   const safeMin = Math.min(
+  //     newMin,
+  //     maxValue - STEP
+  //   );
+
+  //   onChange?.({
+  //     min: safeMin,
+  //     max: maxValue,
+  //   });
+  // };
+
+  const handleMaxChange = (newMax) => {
+    // Maximum minimum se neeche nahi ja sakta
+    const safeMax = Math.max(
+      newMax,
+      minValue + STEP
+    );
+
+    onChange?.({
+      min: minValue,
+      max: safeMax,
+    });
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        Monthly Rent
+
+      {/* HEADER */}
+      <View style={styles.header}>
+        <Text style={styles.title}>
+          Monthly Rent
+        </Text>
+
+        <Text style={styles.value}>
+          {formatRent(minValue)} -{" "}
+          {formatRent(maxValue)}
+        </Text>
+      </View>
+
+      {/* MINIMUM */}
+      <Text style={styles.label}>
+        Minimum Rent: {formatRent(minValue)}
       </Text>
 
-      <View style={styles.row}>
-        {budgets.map((item) => {
-          const selected = value === item;
+      {/* <Slider
+        style={styles.slider}
+        minimumValue={MIN_RENT}
+        maximumValue={MAX_RENT}
+        step={STEP}
+        value={minValue}
+        onValueChange={handleMinChange}
+        minimumTrackTintColor="#1e40af"
+        maximumTrackTintColor="#ddd"
+        thumbTintColor="#1e40af"
+      /> */}
 
-          return (
-            <TouchableOpacity
-              key={item}
-              style={[
-                styles.option,
-                selected && styles.selected,
-              ]}
-              onPress={() => onChange(item)}
-            >
-              <Text
-                style={[
-                  styles.text,
-                  selected && styles.selectedText,
-                ]}
-              >
-                {item}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+      {/* MAXIMUM */}
+      <Text style={styles.label}>
+        Maximum Rent: {formatRent(maxValue)}
+      </Text>
+
+      <Slider
+        style={styles.slider}
+        minimumValue={MIN_RENT}
+        maximumValue={MAX_RENT}
+        step={STEP}
+        value={maxValue}
+        onValueChange={handleMaxChange}
+        minimumTrackTintColor="#1e40af"
+        maximumTrackTintColor="#ddd"
+        thumbTintColor="#1e40af"
+      />
+
+      {/* RANGE */}
+      <View style={styles.rangeLabels}>
+        <Text style={styles.rangeText}>
+          ₹5K
+        </Text>
+
+        <Text style={styles.rangeText}>
+          ₹5 Lac
+        </Text>
       </View>
+
     </View>
   );
 };
@@ -57,42 +133,43 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
   title: {
     fontSize: 16,
     fontWeight: "700",
     color: "#222",
-    marginBottom: 10,
   },
 
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-  },
-
-  option: {
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 20,
-    backgroundColor: "#fff",
-
-    marginRight: 8,
-    marginBottom: 8,
-  },
-
-  selected: {
-    backgroundColor: "#1e40af",
-    borderColor: "#1e40af",
-  },
-
-  text: {
+  value: {
     fontSize: 14,
-    color: "#333",
+    fontWeight: "700",
+    color: "#1e40af",
   },
 
-  selectedText: {
-    color: "#fff",
-    fontWeight: "600",
+  label: {
+    fontSize: 12,
+    color: "#555",
+    marginBottom: 2,
+  },
+
+  slider: {
+    width: "100%",
+    height: 40,
+  },
+
+  rangeLabels: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  rangeText: {
+    fontSize: 12,
+    color: "#777",
   },
 });
