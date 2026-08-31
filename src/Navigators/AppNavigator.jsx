@@ -7,6 +7,7 @@ import SettingScreen from "../Screens/SettingScreen"
 import SearchScreen from "../Screens/SearchScreen"
 import PropertyList from "../Screens/PropertyList"
 import DetailScreen from "../Screens/DetailScreen" 
+import HomeDetailScreen from "../Screens/HomeDetailScreen"
 const Stack = createStackNavigator();
 
 const AppNavigator = () => {
@@ -26,6 +27,7 @@ const AppNavigator = () => {
                 <Stack.Screen name="search" component={SearchScreen} options={{ headerShown: false }}/>
                 <Stack.Screen name="PropertyList" component={PropertyList} options={{ headerShown: false }} />
                 <Stack.Screen name="detail" component={DetailScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="homedetail" component={HomeDetailScreen} options={{ headerShown: false }} />
             </Stack.Navigator>
         </NavigationContainer>
     );

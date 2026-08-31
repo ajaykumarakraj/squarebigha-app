@@ -4,7 +4,7 @@ import Feather from 'react-native-vector-icons/Feather';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const DetailScreen = () => {
+const HomeDetailScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const [saved, setSaved] = useState(false);
@@ -20,10 +20,10 @@ const DetailScreen = () => {
             </View>
         );
     }
-// console.log("res",property.media[0].file_url)
+console.log("reshome",property.primary_media.file_url )
     const title = property.title || property.apartment_society || property.property_type || 'Property';
     const location = property.location || [property.locality, property.property_city].filter(Boolean).join(', ') || 'Location not available';
-    const imageUri = property?.media?.[0]?.file_url || null;
+    const imageUri = property?.primary_media?.file_url || null;
     const highlights = Array.isArray(property.highlights) ? property.highlights : [];
 console.log("imageUri",imageUri, location,title)
     return (
@@ -73,7 +73,7 @@ console.log("imageUri",imageUri, location,title)
     );
 };
 
-export default DetailScreen;
+export default HomeDetailScreen;
 
 const styles = StyleSheet.create({
     safeArea: { flex: 1, backgroundColor: '#F7F5F0' },

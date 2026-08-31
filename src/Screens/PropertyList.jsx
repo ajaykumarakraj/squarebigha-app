@@ -38,8 +38,8 @@ const FilterScreen = ({ route }) => {
     const { searchData } = route.params || {};
 
 
-console.log("get data",searchData)
- 
+    console.log("get data", searchData)
+
     // const [selectedTab, setSelectedTab] = useState("All");
 
     const [GetList, setGetList] = useState([]);
@@ -69,9 +69,9 @@ console.log("get data",searchData)
             const payload = {
                 listing_type: searchData?.category,
                 min_price: 1000,
-                max_price:  searchData?.budget ??
-    searchData?.rent?.max ??
-    500000000,
+                max_price: searchData?.budget ??
+                    searchData?.rent?.max ??
+                    500000000,
                 bhk_type: searchData?.bhk,
 
                 property_sub_type: (
@@ -80,7 +80,7 @@ console.log("get data",searchData)
                     (item) => item.property_subtype
                 ),
 
-                 commercial_list_type:(
+                commercial_list_type: (
                     searchData?.commercialType || []
                 ).map(
                     (item) => item.property_subtype
@@ -669,9 +669,9 @@ console.log("get data",searchData)
                     />
                 </TouchableOpacity>
 
-                <TextInput
+                {/* <TextInput
                     style={
-                        styles.searchInput }
+                        styles.searchInput}
                     placeholder={
                         searchData?.location
                             ?.locality ||
@@ -680,13 +680,13 @@ console.log("get data",searchData)
                         "Search location"
                     }
                     placeholderTextColor="#999"
-                />
+                /> */}
 
                 <TouchableOpacity
                     style={
                         styles.filterBtn
                     }
-                     onPress={() =>
+                    onPress={() =>
                         navigation.goBack()
                     }
                 >
@@ -867,7 +867,7 @@ console.log("get data",searchData)
                 />
             )}
 
-           
+
         </View>
     );
 };
@@ -878,14 +878,18 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#f7f7f9",
-        paddingTop: 20,
+        paddingTop: 30,
     },
 
     searchFilterContainer: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent:"space-between",
         marginHorizontal: 12,
         marginBottom: 10,
+        borderBottomWidth:1,
+        paddingBottom:4
+        // borderBottomColor:1px solid red,
     },
 
     backButton: {

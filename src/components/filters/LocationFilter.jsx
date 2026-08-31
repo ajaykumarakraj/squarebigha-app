@@ -215,13 +215,13 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
 
-    backgroundColor: "#fff",
+    backgroundColor: "#f5f5f5",
 
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
 
-    maxHeight: 220,
+    maxHeight: 420,
 
     zIndex: 9999,
     elevation: 10,

@@ -5,10 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
+import axios from "axios";
 
 import LocationFilter from "../components/filters/LocationFilter";
-
 import BuyFilter from "../components/filters/BuyFilter";
 import RentFilter from "../components/filters/RentFilter";
 import PlotFilter from "../components/filters/PlotFilter";
@@ -19,13 +20,10 @@ const SearchScreen = ({ route, navigation }) => {
   // =========================
   // CATEGORY
   // =========================
-const category = (
-  route?.params?.category || "sale"
-).toLowerCase();
 
-
-
-  console.log("CATEGORY:", category);
+  const [category, setCategory] = useState(
+    (route?.params?.category || "sale").toLowerCase()
+  );
 
   // =========================
   // FILTER STATE
@@ -34,6 +32,8 @@ const category = (
   const [filters, setFilters] = useState(
     route?.params?.filters || {}
   );
+
+  const [loading, setLoading] = useState(false);
 
   // =========================
   // UPDATE FILTER
@@ -45,7 +45,18 @@ const category = (
       [key]: value,
     }));
 
-    console.log("Filter:", key, value);
+    console.log("FILTER:", key, value);
+  };
+
+  // =========================
+  // CHANGE CATEGORY
+  // =========================
+
+  const changeCategory = (newCategory) => {
+    setCategory(newCategory);
+
+    // Previous category ke filters remove
+    setFilters({});
   };
 
   // =========================
@@ -62,7 +73,6 @@ const category = (
 
   const renderCategoryFilter = () => {
     switch (category) {
-      // BUY
       case "sale":
         return (
           <BuyFilter
@@ -71,7 +81,6 @@ const category = (
           />
         );
 
-      // RENT
       case "rent":
         return (
           <RentFilter
@@ -80,17 +89,6 @@ const category = (
           />
         );
 
-      // PLOT
-      case "plot":
-      case "plots":
-        return (
-          <PlotFilter
-            filters={filters}
-            updateFilter={updateFilter}
-          />
-        );
-
-      // COMMERCIAL
       case "commercial":
         return (
           <CommercialFilter
@@ -99,7 +97,15 @@ const category = (
           />
         );
 
-      // PROJECT
+      case "plots":
+      case "plot":
+        return (
+          <PlotFilter
+            filters={filters}
+            updateFilter={updateFilter}
+          />
+        );
+
       case "project":
       case "projects":
         return (
@@ -115,28 +121,6 @@ const category = (
   };
 
   // =========================
-  // APPLY FILTER
-  // =========================
-
-  const applyFilters = () => {
-    const searchData = {
-      category,
-      ...filters,
-    };
-
-    console.log(
-      "FINAL SEARCH DATA:",
-      searchData
-    );
-
-    // Yahan API call kar sakte ho
-
-    navigation.navigate("PropertyList", {
-     searchData
-    });
-  };
-
-  // =========================
   // CATEGORY TITLE
   // =========================
 
@@ -148,12 +132,12 @@ const category = (
       case "rent":
         return "Rent Property";
 
-      case "plot":
-      case "plots":
-        return "Plots";
-
       case "commercial":
         return "Commercial";
+
+      case "plots":
+      case "plot":
+        return "Plots";
 
       case "project":
       case "projects":
@@ -161,6 +145,45 @@ const category = (
 
       default:
         return "Search Property";
+    }
+  };
+
+  // =========================
+  // APPLY FILTER
+  // =========================
+
+  const applyFilters = async () => {
+    try {
+      setLoading(true);
+
+      const searchData = {
+        category,
+        ...filters,
+      };
+
+      console.log("FINAL SEARCH DATA:", searchData);
+
+      const response = await axios.post(
+        "https://api.squarebigha.com/api/search-property-data",
+        {
+          params: searchData,
+        }
+      );
+
+      console.log("SEARCH RESPONSE:", response?.data);
+
+      navigation.navigate("PropertyList", {
+        searchData,
+        properties: response?.data?.data || [],
+      });
+
+    } catch (error) {
+      console.log(
+        "SEARCH ERROR:",
+        error?.response?.data || error?.message
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -175,9 +198,7 @@ const category = (
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.back}>
-            ‹
-          </Text>
+          <Text style={styles.back}>‹</Text>
         </TouchableOpacity>
 
         <Text style={styles.title}>
@@ -194,6 +215,121 @@ const category = (
 
       </View>
 
+      {/* ================= CATEGORY TABS ================= */}
+
+      <View style={styles.tabs}>
+
+        {/* BUY */}
+
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            category === "sale" && styles.activeTab,
+          ]}
+          onPress={() => changeCategory("sale")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              category === "sale" &&
+                styles.activeTabText,
+            ]}
+          >
+            Buy
+          </Text>
+        </TouchableOpacity>
+
+        {/* RENT */}
+
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            category === "rent" && styles.activeTab,
+          ]}
+          onPress={() => changeCategory("rent")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              category === "rent" &&
+                styles.activeTabText,
+            ]}
+          >
+            Rent
+          </Text>
+        </TouchableOpacity>
+
+        {/* COMMERCIAL */}
+
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            category === "commercial" &&
+              styles.activeTab,
+          ]}
+          onPress={() =>
+            changeCategory("commercial")
+          }
+        >
+          <Text
+            style={[
+              styles.tabText,
+              category === "commercial" &&
+                styles.activeTabText,
+            ]}
+          >
+            Commercial
+          </Text>
+        </TouchableOpacity>
+
+        {/* PLOTS */}
+
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            category === "plots" &&
+              styles.activeTab,
+          ]}
+          onPress={() =>
+            changeCategory("plots")
+          }
+        >
+          <Text
+            style={[
+              styles.tabText,
+              category === "plots" &&
+                styles.activeTabText,
+            ]}
+          >
+            Plots
+          </Text>
+        </TouchableOpacity>
+
+        {/* PROJECT */}
+
+        <TouchableOpacity
+          style={[
+            styles.tab,
+            category === "project" &&
+              styles.activeTab,
+          ]}
+          onPress={() =>
+            changeCategory("project")
+          }
+        >
+          <Text
+            style={[
+              styles.tabText,
+              category === "project" &&
+                styles.activeTabText,
+            ]}
+          >
+            Project
+          </Text>
+        </TouchableOpacity>
+
+      </View>
+
       {/* ================= FILTER CONTENT ================= */}
 
       <ScrollView
@@ -201,7 +337,7 @@ const category = (
         contentContainerStyle={styles.content}
       >
 
-        {/* COMMON LOCATION */}
+        {/* LOCATION */}
 
         <LocationFilter
           value={filters.location}
@@ -213,26 +349,37 @@ const category = (
           }
         />
 
-        {/* CATEGORY WISE FILTER */}
+        {/* CATEGORY FILTER */}
 
         {renderCategoryFilter()}
 
+
+<View style={styles.bottom}>
+  <TouchableOpacity
+    style={[
+      styles.searchButton,
+      loading && styles.disabledButton,
+    ]}
+    onPress={applyFilters}
+    disabled={loading}
+    activeOpacity={0.8}
+  >
+    {loading ? (
+      <ActivityIndicator color="#fff" />
+    ) : (
+      <Text style={styles.searchButtonText}>
+        🔍 Search Properties
+      </Text>
+    )}
+  </TouchableOpacity>
+</View>
+
+
       </ScrollView>
 
-      {/* ================= APPLY BUTTON ================= */}
+      {/* ================= APPLY ================= */}
 
-      <View style={styles.bottom}>
 
-        <TouchableOpacity
-          style={styles.applyButton}
-          onPress={applyFilters}
-        >
-          <Text style={styles.applyText}>
-            Apply Filters
-          </Text>
-        </TouchableOpacity>
-
-      </View>
 
     </View>
   );
@@ -242,22 +389,26 @@ export default SearchScreen;
 
 const styles = StyleSheet.create({
   container: {
+
     flex: 1,
     backgroundColor: "#fff",
+    paddingTop:30
   },
 
   header: {
     height: 60,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
+    paddingHorizontal: 15,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
 
   backButton: {
-    width: 50,
+    width: 40,
+    height: 40,
     justifyContent: "center",
+    alignItems: "center",
   },
 
   back: {
@@ -270,39 +421,83 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     fontWeight: "700",
-    color: "#222",
   },
 
   clear: {
-    width: 50,
-    textAlign: "right",
-    fontSize: 14,
+    color: "#ff6347",
     fontWeight: "600",
-    color: "#e53935",
   },
 
+  // =========================
+  // TABS
+  // =========================
+
+  tabs: {
+    flexDirection: "row",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    marginHorizontal: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    backgroundColor: "#f3f3f3",
+  },
+
+  activeTab: {
+    backgroundColor: "#955c06ff",
+  },
+
+  tabText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#555",
+  },
+
+  activeTabText: {
+    color: "#fff",
+  },
+
+  // =========================
+  // CONTENT
+  // =========================
+
   content: {
-    padding: 16,
+    padding: 15,
     paddingBottom: 100,
   },
 
-  bottom: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 12,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
+  // =========================
+  // BOTTOM
+  // =========================
+
+  // bottom: {
+  //   position: "absolute",
+  //   left: 0,
+  //   right: 0,
+  //   bottom: 80,
+  //   padding: 15,
+  //   backgroundColor: "#fff",
+  //   borderTopWidth: 1,
+  //   borderTopColor: "#eee",
+  // },
 
   applyButton: {
     height: 50,
-    borderRadius: 8,
-    backgroundColor: "#1e40af",
-    alignItems: "center",
+    borderRadius: 10,
+    backgroundColor: "#955c06ff",
     justifyContent: "center",
+    alignItems: "center",
+  },
+
+  disabledButton: {
+    opacity: 0.6,
   },
 
   applyText: {
@@ -310,4 +505,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
   },
+  searchButton: {
+  height: 52,
+  backgroundColor: "#955c06ff",
+  borderRadius: 10,
+  alignItems: "center",
+  justifyContent: "center",
+  elevation: 3,
+},
+
+searchButtonText: {
+  color: "#fff",
+  fontSize: 16,
+  fontWeight: "700",
+},
+
+disabledButton: {
+  opacity: 0.6,
+},
 });

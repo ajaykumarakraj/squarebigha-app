@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, TextInput,Linking } from 'react-native';
 import Ionicons from "react-native-vector-icons/Ionicons"
 import { useEffect } from 'react';
 import axios from 'axios';
+
 import { useState } from 'react';
 const tabname = [
   {
@@ -23,7 +24,7 @@ const tabname = [
   {
     label: "Plots",
     icon: "layers-outline",
-    category: "plot",
+    category: "plots",
   },
   {
     label: "Project",
@@ -78,7 +79,7 @@ const gethomeData= async()=>{
 const HotClick = (id, property) => {
   console.log("id", id, property);
 
-  navigation.navigate("detail", {
+  navigation.navigate("homedetail", {
     id: id,
     property: property,
   });
@@ -101,15 +102,31 @@ const handleTabPress = (item) => {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greet}> Hi there! Searching in</Text>
-            <Text style={styles.location}>Noida ▼</Text>
-          </View>
-          <TouchableOpacity style={styles.postBtn}>
-            <Text style={styles.postBtnText}>+ Post Property</Text>
-          </TouchableOpacity>
+        <View style={styles.mainheader}>
+      <View style={styles.header}>
+  <Image
+    source={require("../images/logo.png")}
+    style={styles.logo}
+  />
 
+  <TouchableOpacity
+    style={styles.postBtn}
+    onPress={() => Linking.openURL("https://agent.squarebigha.com/")}
+    activeOpacity={0.8}
+  >
+    <Text style={styles.postBtnText}>+ Post Property</Text>
+  </TouchableOpacity>
+</View>
+
+<View style={styles.heroText}>
+  <Text style={styles.mainHeading}>
+    Find Your Perfect Property
+  </Text>
+
+  <Text style={styles.subHeading}>
+    Discover your perfect place.
+  </Text>
+</View>
         </View>
 
 
@@ -212,9 +229,12 @@ const handleTabPress = (item) => {
               <Text style={styles.feature}>• Zero Brokerage</Text>
               <Text style={styles.feature}>• Genuine, Verified Leads</Text>
               <Text style={styles.feature}>• On-Demand Assistance</Text>
-              <TouchableOpacity style={styles.postBtns}>
-                <Text style={styles.postBtnText}>Post Property Free</Text>
-              </TouchableOpacity>
+             <TouchableOpacity 
+  style={styles.postBtn}
+  onPress={() => Linking.openURL("https://agent.squarebigha.com/")}
+>
+  <Text style={styles.postBtnText}>+ Post Property</Text>
+</TouchableOpacity>
             </View>
           </View>
           <Image
@@ -306,8 +326,11 @@ const styles = StyleSheet.create({
     paddingBottom: 10
 
   },
+  mainheader:{
+     backgroundColor: "#000",
+  },
   header: {
-    backgroundColor: "#955c06ff",
+   
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -316,20 +339,21 @@ const styles = StyleSheet.create({
   },
   greet: {
     fontSize: 15,
-    color: "#eee"
+    color: "#eee",
+    textAlign:"center"
   },
-  location: { color: "#fff", fontSize: 18, fontWeight: "bold" },
+  location: { color: "#fff", fontSize: 18, fontWeight: "bold",textAlign:"center" },
   postBtnText:
     { color: "#fff", fontSize: 12, fontWeight: "bold" },
   postBtn: {
-    backgroundColor: "#28a745",
+    backgroundColor: "#955c06ff",
     alignSelf: "flex-end",
     margin: 10,
     padding: 8,
     borderRadius: 6
   },
   postBtns: {
-    backgroundColor: "#28a745",
+    backgroundColor: "#955c06ff",
     alignSelf: "flex-start",
     margin: 10,
     padding: 8,
@@ -357,14 +381,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10
   },
   searchIcon: {
-    backgroundColor: "#28a745",
+    backgroundColor: "#955c06ff",
     padding: 8,
     borderRadius: 8,
     position: "relative",
     left: 8
   },
   banner: {
-    backgroundColor: "#955c06ff",
+    backgroundColor: "#000",
     margin: 15,
     padding: 15,
     borderRadius: 10,
@@ -480,6 +504,61 @@ const styles = StyleSheet.create({
     backgroundColor: "#00000095",
     bottom: 95,
     borderRadius: 5
-  }
+  },
+  image:{
+   width: 150,
+    height: 200,
+    resizeMode: "contain",
+  },
+header: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  paddingHorizontal: 18,
+  paddingTop: 40,
+  paddingBottom: 10,
+},
+
+logo: {
+  width: 130,
+  height: 45,
+  resizeMode: "contain",
+},
+
+postBtn: {
+  paddingHorizontal: 14,
+  paddingVertical: 9,
+  borderRadius: 20,
+  backgroundColor: "#955c06ff",
+},
+
+postBtnText: {
+  color: "#fff",
+  fontSize: 13,
+  fontWeight: "600",
+},
+
+heroText: {
+  alignItems: "center",
+  paddingHorizontal: 25,
+  paddingTop:5,
+  paddingBottom: 20,
+},
+
+mainHeading: {
+  fontSize: 25,
+  fontWeight: "700",
+  color: "#e6ebe7",
+  textAlign: "center",
+  letterSpacing: 0.2,
+},
+
+subHeading: {
+  fontSize: 14,
+  color: "#f8fffa",
+  textAlign: "center",
+  marginTop: 6,
+},
+
 })
 
