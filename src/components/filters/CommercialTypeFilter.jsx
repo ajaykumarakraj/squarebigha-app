@@ -116,8 +116,8 @@ const styles = StyleSheet.create({
   },
 
   selected: {
-    backgroundColor: "#1e40af",
-    borderColor: "#1e40af",
+    backgroundColor: "#955c06ff",
+    borderColor: "#955c06ff",
   },
 
   text: {

@@ -19,7 +19,7 @@ const TabNavigator = () => {
 
         tabBarStyle: {
           position: 'absolute',
-          bottom: 15,
+          bottom: 30,
           left: 20,
           right: 20,
           elevation: 5,

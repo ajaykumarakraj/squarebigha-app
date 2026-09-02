@@ -89,9 +89,9 @@ const RentBudgetFilter = ({
         step={STEP}
         value={minValue}
         onValueChange={handleMinChange}
-        minimumTrackTintColor="#1e40af"
+        minimumTrackTintColor="#955c06ff"
         maximumTrackTintColor="#ddd"
-        thumbTintColor="#1e40af"
+        thumbTintColor="#955c06ff"
       /> */}
 
       {/* MAXIMUM */}
@@ -106,9 +106,9 @@ const RentBudgetFilter = ({
         step={STEP}
         value={maxValue}
         onValueChange={handleMaxChange}
-        minimumTrackTintColor="#1e40af"
+        minimumTrackTintColor="#955c06ff"
         maximumTrackTintColor="#ddd"
-        thumbTintColor="#1e40af"
+        thumbTintColor="#955c06ff"
       />
 
       {/* RANGE */}
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 14,
     fontWeight: "700",
-    color: "#1e40af",
+    color: "#955c06ff",
   },
 
   label: {

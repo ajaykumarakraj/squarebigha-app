@@ -43,10 +43,10 @@ const FurnishingFilter = ({ value, onChange }) => {
                 paddingVertical: 10,
                 borderWidth: 1,
                 borderColor: selected
-                  ? "#1e40af"
+                  ? "#955c06ff"
                   : "#ddd",
                 backgroundColor: selected
-                  ? "#1e40af"
+                  ? "#955c06ff"
                   : "#fff",
                 borderRadius: 20,
               }}

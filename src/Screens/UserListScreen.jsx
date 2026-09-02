@@ -209,6 +209,7 @@ export default UserListScreen;
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: 20,
     flex: 1,
     backgroundColor: "#f5f5f5",
   },

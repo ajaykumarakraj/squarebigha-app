@@ -158,6 +158,7 @@ const handleTabPress = (item) => {
   <View style={styles.searchBar}>
     <TextInput
       placeholder="Search locality, landmark, project ..."
+       placeholderTextColor="#090909"
       style={{ flex: 1 }}
       editable={false}
       pointerEvents="none"
@@ -245,70 +246,154 @@ const handleTabPress = (item) => {
         </View>
 
 
-        <ScrollView showsVerticalScrollIndicator={true}>
+       <ScrollView showsVerticalScrollIndicator={true}>
+  <Text style={styles.sectionTitle}>
+    High-Demand Projects to Invest Now
+  </Text>
+
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+  >
+    {Highdemand.map((item, index) => (
+      <TouchableOpacity
+        key={index}
+        style={styles.cardh}
+        activeOpacity={0.8}
+        onPress={() => HotClick(item.id, item)}
+      >
+        <Image
+          source={{
+            uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}`,
+          }}
+          style={styles.cardImgh}
+        />
+
+        <View style={styles.textsec}>
+          <Text style={styles.cardTitleh} numberOfLines={1}>
+            {item.apartment_society}, {item.locality}, {item.property_city}
+          </Text>
+
+          <Text style={styles.cardSubh}>
+            {item.rating} ₹
+            {formatPrice(Number(item.price) * Number(item.area))}
+          </Text>
+
+          <Text
+            style={styles.cardSubh}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {item.description}
+          </Text>
+
+          <Text style={styles.cardLinkh}>
+            Know more →
+          </Text>
+        </View>
+      </TouchableOpacity>
+    ))}
+  </ScrollView>
+</ScrollView>
 
 
-          {/* Popular Localities */}
-          <Text style={styles.sectionTitle}>High-demand projects to invest now</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {Highdemand.map((item, index) => (
-              <View key={index} style={styles.cardh}>
-                <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImgh} />
-                <View style={styles.textsec}>
-                  <Text style={styles.cardTitleh} numberOfLines={1}>{item.apartment_society},{item.locality},{item.property_city}</Text>
-                  <Text style={styles.cardSubh}>{item.rating}  ₹{formatPrice(Number(item.price) * Number(item.area))}</Text>
-                  <Text style={styles.cardSubh} numberOfLines={1} ellipsizeMode="tail">{item.description}</Text>
-                  <Text style={styles.cardLinkh}>Know more →</Text>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-        </ScrollView>
 
+      <ScrollView showsVerticalScrollIndicator={true}>
+  <Text style={styles.sectionTitle}>Recommended for You</Text>
 
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+  >
+    {Recommended.map((item, index) => (
+      <TouchableOpacity
+        key={index}
+        style={styles.cardR}
+        activeOpacity={0.8}
+        onPress={() => HotClick(item.id, item)}
+      >
+        <View style={styles.box}>
+          <View>
+            <Image
+              source={{
+                uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}`,
+              }}
+              style={styles.cardImgR}
+            />
+          </View>
 
-        <ScrollView showsVerticalScrollIndicator={true}>
+          <View>
+            <Text style={styles.cardTitle}>
+              {item.locality}, {item.property_city}
+            </Text>
 
+            <Text style={styles.cardSub}>
+              {item.rating} ₹
+              {formatPrice(
+                Number(item.price) * Number(item.area)
+              )}
+            </Text>
 
-          {/* Popular Localities */}
-          <Text style={styles.sectionTitle}>Recommended for You</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {Recommended.map((item, index) => (
-              <View key={index} style={styles.cardR}>
-                <View style={styles.box}>
-                  <View>
-                    <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImgR} />
-                  </View>
-                  <View>
-                    <Text style={styles.cardTitle}>{item.locality},{item.property_city}</Text>
-                    <Text style={styles.cardSub}>{item.rating}  {formatPrice(Number(item.price) * Number(item.area))}</Text>
-                 <Text style={styles.cardSub}>
-  {item.description?.split(" ").slice(0, 4).join(" ")}
-</Text>
-                    <Text style={styles.cardLink}>Know more →</Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-        </ScrollView>
+            <Text style={styles.cardSub}>
+              {item.description
+                ?.split(" ")
+                .slice(0, 4)
+                .join(" ")}
+            </Text>
+
+            <Text style={styles.cardLink}>
+              Know more →
+            </Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    ))}
+  </ScrollView>
+</ScrollView>
 
         <ScrollView showsVerticalScrollIndicator={true}>
 
 
           {/* Popular Localities */}
           <Text style={styles.sectionTitle}>Newly Launched Projects</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {Newly.map((item, index) => (
-              <View key={index} style={styles.card} onClick={() => HotClick(item.id, item.property_type)}>
-                <Image source={{ uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}` }} style={styles.cardImg} />
-                <Text style={styles.cardTitle} numberOfLines={1}>{item.apartment_society},{item.locality},{item.property_city}</Text>
-                <Text style={styles.cardSub}>{item.rating}  {formatPrice(Number(item.price) * Number(item.area))}</Text>
-                <Text style={styles.cardSub} numberOfLines={1} ellipsizeMode="tail">{item.description}</Text>
-                <Text style={styles.cardLink}>Know more →</Text>
-              </View>
-            ))}
-          </ScrollView>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+  {Newly.map((item, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.card}
+      activeOpacity={0.8}
+       onPress={() => HotClick(item.id, item)}
+    >
+      <Image
+        source={{
+          uri: `https://api.squarebigha.com/${item?.primary_media?.file_url}`,
+        }}
+        style={styles.cardImg}
+      />
+
+      <Text style={styles.cardTitle} numberOfLines={1}>
+        {item.apartment_society}, {item.locality}, {item.property_city}
+      </Text>
+
+      <Text style={styles.cardSub}>
+        {item.rating} ₹
+        {formatPrice(Number(item.price) * Number(item.area))}
+      </Text>
+
+      <Text
+        style={styles.cardSub}
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {item.description}
+      </Text>
+
+      <Text style={styles.cardLink}>
+        Know more →
+      </Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
         </ScrollView>
 
 

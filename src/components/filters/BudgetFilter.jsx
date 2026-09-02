@@ -38,9 +38,9 @@ const BudgetFilter = ({ value = MAX_BUDGET, onChange }) => {
         onValueChange={(newValue) => {
           onChange?.(newValue);
         }}
-        minimumTrackTintColor="#1e40af"
+        minimumTrackTintColor="#955c06ff"
         maximumTrackTintColor="#ddd"
-        thumbTintColor="#1e40af"
+        thumbTintColor="#955c06ff"
       />
 
       <View style={styles.rangeLabels}>
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1e40af",
+    color: "#955c06ff",
   },
 
   slider: {

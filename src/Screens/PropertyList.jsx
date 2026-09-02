@@ -8,8 +8,11 @@ import {
     TouchableOpacity,
     ScrollView,
     TextInput,
+    Pressable,
     Modal,
     Dimensions,
+    Alert,
+    Linking,
     ActivityIndicator,
 } from "react-native";
 
@@ -19,36 +22,83 @@ import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
-const API_URL =
-    "https://api.squarebigha.com/api/search-property-data";
+const API_URL ="https://api.squarebigha.com/api/search-property-data";
 
-const IMAGE_BASE_URL =
-    "https://api.squarebigha.com/";
+const IMAGE_BASE_URL = "https://api.squarebigha.com/";
 
-// const tabs = [
-//     "All",
-//     "Owner Properties",
-//     "Housing Verified",
-//     "Apartment",
-// ];
 
 const FilterScreen = ({ route }) => {
     const navigation = useNavigation();
 
     const { searchData } = route.params || {};
-
-
     console.log("get data", searchData)
-
-    // const [selectedTab, setSelectedTab] = useState("All");
-
     const [GetList, setGetList] = useState([]);
-
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [loadingMore, setLoadingMore] = useState(false);
+
+    const [selectedProperty, setSelectedProperty] = useState(null);
+const [showEnquiry, setShowEnquiry] = useState(false);
+
+const [formData, setFormData] = useState({
+  name: '',
+  email: '',
+  phone: '',
+});
+console.log(selectedProperty,"GetList")
+const handleCallSubmit = async () => {
+  if (!formData.name || !formData.email || !formData.phone) {
+    Alert.alert('Required', 'Please fill all fields');
+    return;
+  }
+
+  try {
+    const payload = {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      project_id: selectedProperty.id,
+       type: selectedProperty.property_type,
+    };
+
+    console.log("Enquiry Payload:", payload);
+
+    const response = await axios.post(
+       "https://api.squarebigha.com/api/submit-enquiry",
+      payload
+    );
+
+    console.log("Enquiry Response:", response.data);
+
+    setShowEnquiry(false);
+
+  } catch (error) {
+    console.log(
+      "Enquiry Error:",
+      error?.response?.data || error?.message
+    );
+
+    Alert.alert("Error", "Something went wrong");
+  }
+};
+
+const handleWhatsApp = () => {
+
+ 
+
+  console.log("WhatsApp Property Type:", selectedProperty.property_type);
+  console.log("WhatsApp Property ID:",  selectedProperty.id);
+  const message = `Hello, I am interested in your property listing.
+Property ID: ${selectedProperty.id}
+Property Type: ${selectedProperty.property_type}`;
+
+  Linking.openURL(
+    `https://wa.me/919761407482?text=${encodeURIComponent(message)}`
+  );
+};
+
 
     useEffect(() => {
         setGetList([]);
@@ -167,12 +217,13 @@ const FilterScreen = ({ route }) => {
         getList(nextPage);
     };
 
-    const cardClick = (selectedItem) => {
-        navigation.navigate("detail", {
-            property: selectedItem,
-        });
-    };
-
+  
+const cardClick = (selectedItem) => {
+  setSelectedProperty(selectedItem);
+  navigation.navigate("detail", {
+    property: selectedItem,
+  });
+};
     const formatPrice = (price) => {
         const amount = Number(price);
 
@@ -266,6 +317,151 @@ const FilterScreen = ({ route }) => {
             }`;
 
         return (
+            <>
+            {/* ================= ENQUIRY POPUP ================= */}
+
+<Modal
+  visible={showEnquiry}
+  transparent={true}
+  animationType="fade"
+  onRequestClose={() => setShowEnquiry(false)}
+>
+  <View style={styles.modalOverlay}>
+
+    <View style={styles.enquiryModal}>
+
+      {/* Header */}
+      <View style={styles.modalHeader}>
+        <View>
+          <Text style={styles.modalTitle}>
+            Contact Seller
+          </Text>
+
+          <Text style={styles.modalSubtitle}>
+            Please enter your details
+          </Text>
+        </View>
+
+        <Pressable
+          style={styles.closeBtn}
+          onPress={() => setShowEnquiry(false)}
+        >
+          <Feather
+            name="x"
+            size={20}
+            color="#18201D"
+          />
+        </Pressable>
+      </View>
+
+      {/* Name */}
+      <Text style={styles.inputLabel}>
+        Name
+      </Text>
+
+      <View style={styles.inputContainer}>
+        <Feather
+          name="user"
+          size={18}
+          color="#8A8F89"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your name"
+          placeholderTextColor="#A5AAA5"
+          value={formData.name}
+          onChangeText={(text) =>
+            setFormData({
+              ...formData,
+              name: text,
+            })
+          }
+        />
+      </View>
+
+      {/* Email */}
+      <Text style={styles.inputLabel}>
+        Email
+      </Text>
+
+      <View style={styles.inputContainer}>
+        <Feather
+          name="mail"
+          size={18}
+          color="#8A8F89"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Enter your email"
+          placeholderTextColor="#A5AAA5"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={formData.email}
+          onChangeText={(text) =>
+            setFormData({
+              ...formData,
+              email: text,
+            })
+          }
+        />
+      </View>
+
+      {/* Mobile */}
+      <Text style={styles.inputLabel}>
+        Mobile Number
+      </Text>
+
+      <View style={styles.inputContainer}>
+        <Feather
+          name="phone"
+          size={18}
+          color="#8A8F89"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Enter mobile number"
+          placeholderTextColor="#A5AAA5"
+          keyboardType="phone-pad"
+          maxLength={10}
+          value={formData.phone}
+          onChangeText={(text) =>
+            setFormData({
+              ...formData,
+              phone: text.replace(/[^0-9]/g, ''),
+            })
+          }
+        />
+      </View>
+
+      {/* Submit */}
+      <Pressable
+        style={styles.submitBtn}
+        onPress={handleCallSubmit}
+      >
+        <Feather
+          name="phone"
+          size={18}
+          color="#FFF"
+        />
+
+        <Text style={styles.submitBtnText}>
+          Submit 
+        </Text>
+      </Pressable>
+
+      {/* Privacy */}
+      <Text style={styles.privacyText}>
+        Your details are safe and will only be used
+        for this property enquiry.
+      </Text>
+
+    </View>
+
+  </View>
+</Modal>
             <TouchableOpacity
                 activeOpacity={0.95}
                 style={styles.card}
@@ -294,9 +490,7 @@ const FilterScreen = ({ route }) => {
                             ) =>
                                 `${image}-${index}`
                             }
-                            renderItem={({
-                                item: image,
-                            }) => (
+                            renderItem={({   item: image, }) => (
                                 <Image
                                     source={{
                                         uri: image,
@@ -639,8 +833,62 @@ const FilterScreen = ({ route }) => {
                             </Text>
                         )}
                     </View>
+<View style={styles.actionButtons}>
+
+  {/* Call Button */}
+  <Pressable
+    style={({ pressed }) => [
+      styles.callEnquiryButton,
+      pressed && styles.buttonPressed,
+    ]}
+   onPress={() => {
+  setSelectedProperty(item);
+  setShowEnquiry(true);
+}}
+  >
+    <Feather
+      name="phone"
+      size={19}
+      color="#FFF"
+    />
+
+    <Text style={styles.callEnquiryText}>
+      Call
+    </Text>
+  </Pressable>
+
+
+  {/* WhatsApp Button */}
+  <Pressable
+  style={({ pressed }) => [
+    styles.whatsappEnquiryButton,
+    pressed && styles.buttonPressed,
+  ]}
+  onPress={() => {
+    setSelectedProperty(item);
+    handleWhatsApp();
+  }}
+>
+  <Feather
+    name="message-circle"
+    size={19}
+    color="#FFF"
+  />
+
+  <Text style={styles.whatsappText}>
+    WhatsApp
+  </Text>
+</Pressable>
+
+</View>
+
                 </View>
+
+             
+
             </TouchableOpacity>
+          
+            </>
         );
     };
 
@@ -669,18 +917,7 @@ const FilterScreen = ({ route }) => {
                     />
                 </TouchableOpacity>
 
-                {/* <TextInput
-                    style={
-                        styles.searchInput}
-                    placeholder={
-                        searchData?.location
-                            ?.locality ||
-                        searchData?.location
-                            ?.city ||
-                        "Search location"
-                    }
-                    placeholderTextColor="#999"
-                /> */}
+               
 
                 <TouchableOpacity
                     style={
@@ -706,47 +943,7 @@ const FilterScreen = ({ route }) => {
                 </TouchableOpacity>
             </View>
 
-            {/* TABS */}
-            {/* <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={
-                    false
-                }
-                style={
-                    styles.tabsContainer
-                }
-            >
-                {tabs.map(
-                    (tab, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.tab,
-                                selectedTab ===
-                                tab &&
-                                styles.activeTab,
-                            ]}
-                            onPress={() =>
-                                setSelectedTab(
-                                    tab
-                                )
-                            }
-                        >
-                            <Text
-                                style={[
-                                    styles.tabText,
-                                    selectedTab ===
-                                    tab &&
-                                    styles.activeTabText,
-                                ]}
-                            >
-                                {tab}
-                            </Text>
-                        </TouchableOpacity>
-                    )
-                )}
-            </ScrollView> */}
-
+        
             {/* RESULT */}
             <View
                 style={
@@ -1359,4 +1556,172 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: "700",
     },
+    modalOverlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.55)',
+  justifyContent: 'center',
+  alignItems: 'center',
+  paddingHorizontal: 20,
+},
+
+enquiryModal: {
+  width: '100%',
+  backgroundColor: '#FFFFFF',
+  borderRadius: 18,
+  padding: 22,
+  elevation: 12,
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 6,
+  },
+  shadowOpacity: 0.2,
+  shadowRadius: 12,
+},
+
+modalHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'flex-start',
+  marginBottom: 10,
+},
+
+modalTitle: {
+  fontSize: 23,
+  fontWeight: '700',
+  color: '#18201D',
+},
+
+modalSubtitle: {
+  fontSize: 13,
+  color: '#8A8F89',
+  marginTop: 4,
+},
+
+closeBtn: {
+  width: 36,
+  height: 36,
+  borderRadius: 18,
+  backgroundColor: '#F3F4F1',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+inputLabel: {
+  fontSize: 13,
+  fontWeight: '600',
+  color: '#18201D',
+  marginTop: 14,
+  marginBottom: 7,
+},
+
+inputContainer: {
+  height: 50,
+  borderWidth: 1,
+  borderColor: '#E1E3DE',
+  borderRadius: 9,
+  backgroundColor: '#FAFAF8',
+  flexDirection: 'row',
+  alignItems: 'center',
+  paddingHorizontal: 13,
+},
+
+input: {
+  flex: 1,
+  height: 50,
+  marginLeft: 10,
+  color: '#18201D',
+  fontSize: 14,
+},
+
+submitBtn: {
+  height: 35,
+  borderRadius: 9,
+  backgroundColor: '#955c06ff',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 9,
+  marginTop: 24,
+},
+
+submitBtnText: {
+  color: '#FFFFFF',
+  fontSize: 15,
+  fontWeight: '700',
+},
+
+privacyText: {
+  textAlign: 'center',
+  color: '#9A9B91',
+  fontSize: 11,
+  lineHeight: 17,
+  marginTop: 12,
+},
+actionButtons: {
+  flexDirection: 'row',
+  paddingHorizontal: 20,
+  marginTop: 10,
+  gap: 12,
+  borderTopWidth: 1,
+  borderTopColor: '#E1E3DE',
+  paddingTop: 10,
+},
+
+callEnquiryButton: {
+  flex: 1,
+  height: 35,
+  borderRadius: 10,
+  backgroundColor: '#955c06ff',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 9,
+
+  elevation: 3,
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.12,
+  shadowRadius: 4,
+},
+
+callEnquiryText: {
+  color: '#FFFFFF',
+  fontSize: 15,
+  fontWeight: '700',
+},
+
+whatsappEnquiryButton: {
+  flex: 1,
+  height: 35,
+  borderRadius: 10,
+  backgroundColor: '#25D366',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  gap: 9,
+
+  elevation: 3,
+  shadowColor: '#000',
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.12,
+  shadowRadius: 4,
+},
+
+whatsappText: {
+  color: '#FFFFFF',
+  fontSize: 15,
+  fontWeight: '700',
+},
+
+buttonPressed: {
+  opacity: 0.75,
+  transform: [{ scale: 0.98 }],
+},
 });
